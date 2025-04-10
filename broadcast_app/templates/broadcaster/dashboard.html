@@ -1,0 +1,17 @@
+<!-- broadcast_app/templates/broadcaster/dashboard.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Broadcaster Dashboard</title>
+</head>
+<body>
+    <h2>Welcome, Broadcaster!</h2>
+    <p><a href="#">Start Broadcast</a></p>
+    <!-- <p><a href="{% url 'logout' %}">Logout</a></p> -->
+    <form action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit">Logout</button>
+      </form>
+      
+</body>
+</html>
