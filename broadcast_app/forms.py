@@ -9,7 +9,7 @@ from django import forms
 class CustomAuthenticationForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['username'].widget.attrs.update({'placeholder': 'Email', 'class': 'form-control'})
+        self.fields['username'].widget.attrs.update({'placeholder': 'Username', 'class': 'form-control'})
         self.fields['password'].widget.attrs.update({'placeholder': 'Password', 'class': 'form-control'})
 
 class SignUpForm(UserCreationForm):

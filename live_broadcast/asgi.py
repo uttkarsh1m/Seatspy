@@ -1,16 +1,16 @@
-"""
-ASGI config for live_broadcast project.
-
-It exposes the ASGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
-"""
-
 import os
-
 from django.core.asgi import get_asgi_application
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+import broadcast_app.urls  
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'live_broadcast.settings')
 
-application = get_asgi_application()
+application = ProtocolTypeRouter({
+    "http": get_asgi_application(),  # Regular HTTP requests use Django’s built-in ASGI handler (for WSGI-like behavior)
+    "websocket": AuthMiddlewareStack(  
+        URLRouter(
+            broadcast_app.urls.websocket_urlpatterns
+        )
+    ),
+})
