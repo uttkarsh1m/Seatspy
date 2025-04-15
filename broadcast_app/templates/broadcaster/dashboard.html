@@ -1,17 +1,34 @@
-<!-- broadcast_app/templates/broadcaster/dashboard.html -->
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Broadcaster Dashboard</title>
+  <title>Broadcaster Dashboard</title>
+  <style>
+    body { font-family: Arial; margin: 2rem; }
+    .card { border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem; border-radius: 8px; }
+    .card-title { font-weight: bold; font-size: 1.2rem; }
+    input, button { padding: 0.5rem; margin: 0.5rem 0; }
+  </style>
 </head>
 <body>
-    <h2>Welcome, Broadcaster!</h2>
-    <p><a href="#">Start Broadcast</a></p>
-    <!-- <p><a href="{% url 'logout' %}">Logout</a></p> -->
-    <form action="{% url 'logout' %}" method="post">
-        {% csrf_token %}
-        <button type="submit">Logout</button>
-      </form>
-      
+  <h1>Welcome, {{ request.user.username }}</h1>
+  <h2>Start a New Broadcast</h2>
+  <form method="POST">
+    {% csrf_token %}
+    <input type="text" name="title" placeholder="Enter broadcast title" required />
+    <button type="submit">Go Live</button>
+  </form>
+
+  <h2>Your Past Broadcasts</h2>
+  {% if broadcasts %}
+    {% for broadcast in broadcasts %}
+      <div class="card">
+        <div class="card-title">{{ broadcast.title }}</div>
+        <div>Created At: {{ broadcast.created_at }}</div>
+        <a href="{% url 'broadcaster_room' broadcast.id %}">Re-enter Room</a>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>No broadcasts yet.</p>
+  {% endif %}
 </body>
 </html>

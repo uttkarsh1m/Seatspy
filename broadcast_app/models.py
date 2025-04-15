@@ -21,9 +21,8 @@ class Profile(models.Model):
 class Broadcast(models.Model):
     broadcaster = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
-    description = models.TextField(blank=True)
-    stream_url = models.URLField()
-    is_live = models.BooleanField(default=False)
+    # description = models.TextField(blank=True)
+    # is_live = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

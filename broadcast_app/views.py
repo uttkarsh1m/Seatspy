@@ -6,8 +6,10 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
 from django.contrib.auth.decorators import login_required
+from django.utils.crypto import get_random_string
 from .forms import SignUpForm, CustomAuthenticationForm
-from .models import Profile
+from .models import Profile, Broadcast
+from .decorators import role_required
 
 def home_page_view(request):
     return render(request, 'home.html')
@@ -57,16 +59,43 @@ def custom_logout_view(request):
     logout(request)
     return redirect('login')
 
-@login_required
+@role_required('viewer')
 def viewer_dashboard_view(request):
-    return render(request, 'viewer/dashboard.html')
-
-@login_required
+    live_broadcasts = Broadcast.objects.all().select_related('broadcaster__profile')
+    return render(request, 'viewer/dashboard.html', {
+        'live_broadcasts': live_broadcasts
+    })
+    
+@role_required('broadcaster')
 def broadcaster_dashboard_view(request):
-    return render(request, 'broadcaster/dashboard.html')
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        if title:
+            broadcast = Broadcast.objects.create(
+                broadcaster=request.user,
+                title=title
+            )
+            return redirect('broadcaster_room', room_id=broadcast.id)
 
+    # GET request: show existing broadcasts
+    broadcasts = Broadcast.objects.filter(broadcaster=request.user).order_by('-created_at')
+    return render(request, 'broadcaster/dashboard.html', {
+        'broadcasts': broadcasts
+    })
+    
+@role_required('viewer')
 def viewer_room_view(request, roomId):
-    return render(request, 'viewer/view.html', {'roomId': roomId})
-
+    broadcast = get_object_or_404(Broadcast, id=roomId)
+    return render(request, 'viewer/view.html', {
+        'roomId': broadcast.id,
+        'title': broadcast.title,
+        'broadcaster': broadcast.broadcaster.username
+    })
+    
+@role_required('broadcaster')
 def broadcaster_room_view(request, roomId):
-    return render(request, 'broadcaster/broadcast.html', {'roomId': roomId})
+    broadcast = get_object_or_404(Broadcast, id=roomId, broadcaster=request.user)
+    return render(request, 'broadcaster/broadcast.html', {
+        'roomId': broadcast.id,
+        'title': broadcast.title
+    })

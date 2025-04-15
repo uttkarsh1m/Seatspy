@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Broadcast Stream - {{ title }}</title>
+  <style>
+    video {
+      width: 640px;
+      height: 480px;
+      border: 2px solid #444;
+      border-radius: 8px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 15px;
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #c0392b;
+    }
+  </style>
+</head>
+<body>
+  <h2>Broadcasting: {{ title }} - Room: <span id="room-id">{{ roomId }}</span></h2>
+  <video id="video" autoplay playsinline muted></video><br>
+  <button id="stopBtn">Stop Broadcast</button>
+
+  <script>
+    const roomId = "{{ roomId }}";
+    const wsProtocol = location.protocol === "https:" ? "wss" : "ws";
+    const wsUrl = `${wsProtocol}://${window.location.host}/ws/broadcast/${roomId}/`;
+    const socket = new WebSocket(wsUrl);
+
+    const video = document.getElementById("video");
+    const stopBtn = document.getElementById("stopBtn");
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+
+    let stream;
+    let interval;
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then((mediaStream) => {
+        stream = mediaStream;
+        video.srcObject = stream;
+
+        interval = setInterval(() => {
+          if (video.videoWidth && video.videoHeight) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const frame = canvas.toDataURL("image/jpeg");
+            socket.send(JSON.stringify({ frame }));
+          }
+        }, 200); // ~5 FPS
+      })
+      .catch((error) => {
+        alert("Camera access denied or failed.");
+        redirectToDashboard();
+      });
+
+    stopBtn.onclick = () => {
+      stopBroadcast();
+    };
+
+    socket.onclose = () => {
+      redirectToDashboard();
+    };
+
+    socket.onerror = () => {
+      redirectToDashboard();
+    };
+
+    function stopBroadcast() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      if (interval) {
+        clearInterval(interval);
+      }
+      socket.close();
+      redirectToDashboard();
+    }
+
+    function redirectToDashboard() {
+      window.location.href = "/broadcaster/dashboard/";
+    }
+  </script>
+</body>
+</html>

@@ -1,21 +1,13 @@
-<!-- broadcast_app/templates/viewer/viewer_home.html -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Viewer Home</title>
-</head>
-<body>
-    <h2>Live Broadcasts</h2>
-    <ul>
-        <li>Broadcast 1</li>
-        <li>Broadcast 2</li>
-        <li>Broadcast 3</li>
-    </ul>
-    <!-- <p><a href="{% url 'logout' %}">Logout</a></p> -->
-    <form action="{% url 'logout' %}" method="post">
-        {% csrf_token %}
-        <button type="submit">Logout</button>
-      </form>
-      
-</body>
-</html>
+<h2>Live Broadcasts</h2>
+{% if live_broadcasts %}
+  <ul>
+    {% for broadcast in live_broadcasts %}
+      <li>
+        <strong>{{ broadcast.title }}</strong> by {{ broadcast.broadcaster.username }} <br>
+        <a href="{{ broadcast.stream_url }}" target="_blank">Join Stream</a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>No broadcasts are live right now.</p>
+{% endif %}

@@ -10,8 +10,8 @@ urlpatterns = [
     path('logout/', views.custom_logout_view, name='logout'),
     path('viewer/dashboard/', views.viewer_dashboard_view, name='viewer_dashboard'),
     path('broadcaster/dashboard', views.broadcaster_dashboard_view, name='broadcaster_dashboard'),
-    path('viewer/<str:roomId>/', views.viewer_room_view, name='viewer_room'),
-    path('broadcaster/<str:roomId>/', views.broadcaster_room_view, name='broadcaster_room'),
+    path('viewer/<int:roomId>/', views.viewer_room_view, name='viewer_room'),
+    path('broadcaster/<int:roomId>/', views.broadcaster_room_view, name='broadcaster_room'),
 ]
 
 websocket_urlpatterns = [

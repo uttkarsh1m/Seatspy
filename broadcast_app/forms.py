@@ -55,6 +55,6 @@ class SignUpForm(UserCreationForm):
         user_type = cleaned_data.get('user_type')
         authorization_id = cleaned_data.get('authorization_id')
 
-        if user_type == 'broadcaster' and not authorization_id:
-            self.add_error('authorization_id', "Broadcasters must upload their authorization ID.")
+        # if user_type == 'broadcaster' and not authorization_id:
+        #     self.add_error('authorization_id', "Broadcasters must upload their authorization ID.")
         return cleaned_data
