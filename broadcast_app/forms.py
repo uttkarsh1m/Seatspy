@@ -9,7 +9,7 @@ from django import forms
 class CustomAuthenticationForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['username'].widget.attrs.update({'placeholder': 'Email', 'class': 'form-control'})
+        self.fields['username'].widget.attrs.update({'placeholder': 'Username', 'class': 'form-control'})
         self.fields['password'].widget.attrs.update({'placeholder': 'Password', 'class': 'form-control'})
 
 class SignUpForm(UserCreationForm):
@@ -55,6 +55,6 @@ class SignUpForm(UserCreationForm):
         user_type = cleaned_data.get('user_type')
         authorization_id = cleaned_data.get('authorization_id')
 
-        if user_type == 'broadcaster' and not authorization_id:
-            self.add_error('authorization_id', "Broadcasters must upload their authorization ID.")
+        # if user_type == 'broadcaster' and not authorization_id:
+        #     self.add_error('authorization_id', "Broadcasters must upload their authorization ID.")
         return cleaned_data

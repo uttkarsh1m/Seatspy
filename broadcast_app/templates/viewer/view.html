@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ title }} - Live Stream</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      text-align: center;
+      padding: 30px;
+    }
+    img {
+      width: 640px;
+      height: 480px;
+      border: 2px solid #333;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    h2, h3, h4 {
+      margin: 10px 0;
+    }
+    #offline-msg {
+      color: red;
+      font-size: 1.2em;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Now Streaming: {{ title }}</h2>
+  <h3>By: {{ broadcaster }}</h3>
+  <h4>Room ID: {{ roomId }}</h4>
+  <img id="stream" alt="Live stream will appear here..." />
+  <div id="offline-msg" style="display: none;">🔴 Stream is currently offline.</div>
+
+  <script>
+    const roomId = "{{ roomId }}";
+    const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const wsUrl = `${wsProtocol}://${window.location.host}/ws/broadcast/${roomId}/`;
+    const socket = new WebSocket(wsUrl);
+    const img = document.getElementById("stream");
+    const offlineMsg = document.getElementById("offline-msg");
+
+    let timeout = setTimeout(() => {
+      offlineMsg.style.display = "block";
+    }, 5000); // 5 seconds wait to determine offline
+
+    socket.onmessage = function (event) {
+      const data = JSON.parse(event.data);
+      if (data.frame) {
+        img.src = data.frame;
+        offlineMsg.style.display = "none";  // Hide offline if receiving frames
+        clearTimeout(timeout); // Clear the offline timeout
+        timeout = setTimeout(() => {
+          offlineMsg.style.display = "block";
+        }, 5000); // Restart timeout if no frame for 5s
+      }
+    };
+
+    socket.onerror = function (error) {
+      console.error("WebSocket error:", error);
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+<h2>Live Broadcasts</h2>
+{% if live_broadcasts %}
+  <ul>
+    {% for broadcast in live_broadcasts %}
+      <li>
+        <strong>{{ broadcast.title }}</strong> by {{ broadcast.broadcaster.username }} <br>
+        <a href="{{ broadcast.stream_url }}" target="_blank">Join Stream</a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>No broadcasts are live right now.</p>
+{% endif %}

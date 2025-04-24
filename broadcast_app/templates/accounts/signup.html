@@ -1,181 +1,87 @@
 {% load form_filters %}
+{% load static %}
 
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Sign Up</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sign Up</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Bootstrap CSS & Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Bootstrap CSS & Icons -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{% static 'css/accounts/signup.css' %}"
+    />
+  </head>
+  <body>
+    <div class="signup-box">
+      <img
+        src="https://cdn-icons-png.flaticon.com/512/5087/5087579.png"
+        alt="Logo"
+        class="logo"
+      />
+      <h4 class="text-center mb-3">Create an Account</h4>
 
-  <style>
-    body {
-      background: linear-gradient(to right, #667eea, #764ba2);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 15px;
-    }
-  
-    .signup-box {
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="mb-3 position-relative" id="div_{{ field.name }}">
+          <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
 
-      background: white;
-      border-radius: 16px;
-      padding: 20px 18px;
-      max-width: 450px;
-      width: 100%;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-      animation: fadeIn 0.7s ease-in-out;
-    }
-  
-    .logo {
-      width: 50px;
-      display: block;
-      margin: 0 auto 10px;
-    }
-  
-    .form-icon-group {
-      position: relative;
-    }
-  
-    .form-icon-group i {
-      position: absolute;
-      top: 50%;
-      left: 10px;
-      transform: translateY(-50%);
-      color: #6c757d;
-    }
-  
-    .form-icon-group input {
-      padding-left: 35px !important;
-    }
-  
-    .toggle-password {
-      position: absolute;
-      top: 50%;
-      right: 10px;
-      transform: translateY(-50%);
-      cursor: pointer;
-      color: #6c757d;
-    }
-  
-    .form-label {
-      font-size: 0.9rem;
-      margin-bottom: 4px;
-    }
-  
-    .form-control {
-      padding: 6px 10px;
-      font-size: 0.9rem;
-    }
-  
-    .mb-3 {
-      margin-bottom: 12px !important;
-    }
-  
-    button {
-      padding: 6px 12px;
-      font-size: 0.95rem;
-    }
-  
-    .form-text, .text-danger {
-      font-size: 0.75rem;
-    }
-  
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
-  
-</head>
-<body>
+          {% if field.name == "username" or field.name == "email" or field.name == "authorization_id" %}
+            <div class="form-icon-group">
+              {% if field.name == "username" %}
+                <i class="bi bi-person"></i>
+              {% else %}
+                {% if field.name == "email" %}
+                  <i class="bi bi-envelope"></i>
+                {% else %}
+                  <i class="bi bi-shield-lock"></i>
+                {% endif %}
+              {% endif %}
+              {{ field|add_class:"form-control" }}
+            </div>
 
-<div class="signup-box">
-  <img src="https://cdn-icons-png.flaticon.com/512/5087/5087579.png" alt="Logo" class="logo">
-  <h4 class="text-center mb-3">Create an Account</h4>
-
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {% for field in form %}
-      <div class="mb-3 position-relative" id="div_{{ field.name }}">
-        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-
-        {% if field.name == "username" or field.name == "email" or field.name == "authorization_id" %}
-          <div class="form-icon-group">
-            {% if field.name == "username" %}
-              <i class="bi bi-person"></i>
-            {% elif field.name == "email" %}
-              <i class="bi bi-envelope"></i>
-            {% elif field.name == "authorization_id" %}
-              <i class="bi bi-shield-lock"></i>
+          {% else %}
+            {% if field.name == "password1" or field.name == "password2" %}
+              <div class="position-relative">
+                {{ field|add_class:"form-control" }}
+                <i class="bi bi-eye-slash toggle-password" onclick="togglePassword(this)"></i>
+              </div>
+            {% else %}
+              {{ field|add_class:"form-control" }}
             {% endif %}
-            {{ field|add_class:"form-control" }}
-          </div>
-        {% elif field.name == "password1" or field.name == "password2" %}
-          <div class="position-relative">
-            {{ field|add_class:"form-control" }}
-            <i class="bi bi-eye-slash toggle-password" onclick="togglePassword(this)"></i>
-          </div>
-        {% else %}
-          {{ field|add_class:"form-control" }}
-        {% endif %}
+          {% endif %}
 
-        {% if field.help_text and field.name not in "username password1 password2" %}
-          <div class="form-text">{{ field.help_text }}</div>
-        {% endif %}
-        {% if field.errors %}
-          <div class="text-danger small">{{ field.errors.0 }}</div>
-        {% endif %}
-      </div>
-    {% endfor %}
+          {% if field.help_text and field.name not in "username password1 password2" %}
+            <div class="form-text">{{ field.help_text }}</div>
+          {% endif %}
+          {% if field.errors %}
+            <div class="text-danger small">{{ field.errors.0 }}</div>
+          {% endif %}
+        </div>
+        {% endfor %}
 
-    <button type="submit" class="btn btn-success w-100">Sign Up</button>
-  </form>
+        <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+      </form>
 
-  <p class="text-center mt-3">
-    Already have an account? <a href="{% url 'login' %}">Login</a>
-  </p>
-</div>
+      <p class="text-center mt-3">
+        Already have an account? <a href="{% url 'login' %}">Login</a>
+      </p>
+    </div>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const userType = document.getElementById("id_user_type");
-    const authDiv = document.getElementById("div_authorization_id");
-
-    function toggleAuthField() {
-      if (userType && authDiv) {
-        if (userType.value === "broadcaster") {
-          authDiv.style.display = "block";
-        } else {
-          authDiv.style.display = "none";
-          const input = document.getElementById("id_authorization_id");
-          if (input) input.value = "";
-        }
-      }
-    }
-
-    if (userType) {
-      toggleAuthField();
-      userType.addEventListener("change", toggleAuthField);
-    }
-  });
-
-  function togglePassword(icon) {
-    const input = icon.previousElementSibling;
-    const type = input.getAttribute("type") === "password" ? "text" : "password";
-    input.setAttribute("type", type);
-    icon.classList.toggle("bi-eye");
-    icon.classList.toggle("bi-eye-slash");
-  }
-</script>
-
-</body>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/accounts/signup.js' %}"></script>
+  </body>
 </html>
