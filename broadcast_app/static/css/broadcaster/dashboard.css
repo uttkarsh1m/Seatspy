@@ -1,0 +1,154 @@
+/* Global Background & Base Layout */
+body {
+    background: linear-gradient(to right, #667eea, #764ba2);
+    min-height: 100vh;
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 2rem;
+    color: #333;
+  }
+  
+  .dashboard-container {
+    width: 100%;
+    max-width: 800px;
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    animation: fadeIn 0.7s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  header h1 {
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-size: 2rem;
+    color: #444;
+  }
+  
+  /* Section Headings */
+  section h2 {
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+    color: #555;
+  }
+  
+  /* New Broadcast Form */
+  .new-broadcast form {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 2rem;
+  }
+  
+  .new-broadcast input[type="text"] {
+    padding: 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+  
+  .new-broadcast button {
+    width: fit-content;
+    padding: 0.6rem 1.2rem;
+    font-size: 1rem;
+    background-color: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    align-self: flex-start;
+  }
+  
+  .new-broadcast button:hover {
+    background-color: #5a67d8;
+  }
+  
+  /* Past Broadcasts Section */
+  .past-broadcasts {
+    margin-top: 1.5rem;
+  }
+  
+  .broadcast-scroll-area {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 10px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background: #fdfdfd;
+    padding: 1rem;
+  }
+  
+  /* Custom Scrollbar */
+  .broadcast-scroll-area::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .broadcast-scroll-area::-webkit-scrollbar-thumb {
+    background-color: #bbb;
+    border-radius: 10px;
+  }
+  
+  .broadcast-scroll-area::-webkit-scrollbar-track {
+    background-color: #f1f1f1;
+  }
+  
+  /* Broadcast Cards */
+  .card {
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: #ffffff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  }
+  
+  .card-title {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .card a {
+    display: inline-block;
+    margin-top: 0.5rem;
+    text-decoration: none;
+    color: #667eea;
+    font-weight: 500;
+  }
+  
+  .card a:hover {
+    text-decoration: underline;
+  }
+  .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+  
+  .logout-btn {
+    padding: 0.5rem 1rem;
+    background-color: #ff4d4f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .logout-btn:hover {
+    background-color: #e04344;
+  }
+  

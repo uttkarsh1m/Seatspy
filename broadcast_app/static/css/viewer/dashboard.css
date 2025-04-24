@@ -1,0 +1,151 @@
+html, body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(to bottom right, #667eea, #764ba2);
+    min-height: 100vh; /* Ensures the gradient covers the entire height */
+}
+
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    max-width: 900px;
+    height: 90vh; /* Keeps the container fixed height */
+    margin: 2rem auto 1rem auto;;
+    padding: 2rem;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden; /* Ensure no scroll on the outer container */
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+header h1 {
+    font-size: 2rem;
+    color: #4b3f72;
+}
+
+.logout-btn {
+    background: #e056fd;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.filters {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.search-input,
+.category-dropdown {
+    padding: 10px 14px;
+    border: 1px solid #bbb;
+    border-radius: 12px;
+    font-size: 1rem;
+    flex: 1;
+    min-width: 200px;
+}
+
+.scrollable-cards {
+    flex-grow: 1; /* Ensures it takes up remaining space */
+    overflow-y: auto;
+    padding-right: 0.5rem; /* Avoid clipping on the scrollbar */
+}
+
+.broadcast-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2.5rem; /* tighter gap */
+}
+
+.broadcast-card {
+    background: #e0d4fc;
+    border-radius: 15px;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    text-align: left;
+    transition: transform 0.2s;
+    width: 26%; /* adjusted to fit 4 in a row with gap */
+    height: 320px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.broadcast-card:hover {
+    transform: translateY(-5px);
+}
+
+.broadcast-thumbnail {
+    width: 100%;
+    height: 120px;
+    background: #c4b8ff;
+    border-radius: 10px;
+    margin-bottom: 0.8rem;
+}
+
+.category-tag {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+    color: white;
+}
+
+.category-tag.cafeteria {
+    background-color: #667eea;
+}
+
+.category-tag.library {
+    background-color: #6d9bf1;
+}
+
+.category-tag.lab {
+    background-color: #a38ff4;
+}
+
+.category-tag.auditorium {
+    background-color: #b98cf2;
+}
+
+.join-btn {
+    display: inline-block;
+    margin-top: 0.8rem;
+    background: #764ba2;
+    color: white;
+    padding: 6px 12px; /* Keep this padding for height */
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    min-width: 70px; /* Set a fixed minimum width */
+    width: auto; /* Let the width adjust based on text */
+    text-align: center;
+}
+
+.no-broadcasts {
+    text-align: center;
+    margin-top: 3rem;
+}
+
+.no-broadcasts img {
+    width: 160px;
+    margin-bottom: 1rem;
+}
+
+.no-broadcasts p {
+    font-size: 1.1rem;
+    color: #444;
+}

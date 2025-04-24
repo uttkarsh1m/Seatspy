@@ -1,13 +1,90 @@
-<h2>Live Broadcasts</h2>
-{% if live_broadcasts %}
-  <ul>
-    {% for broadcast in live_broadcasts %}
-      <li>
-        <strong>{{ broadcast.title }}</strong> by {{ broadcast.broadcaster.username }} <br>
-        <a href="{{ broadcast.stream_url }}" target="_blank">Join Stream</a>
-      </li>
-    {% endfor %}
-  </ul>
-{% else %}
-  <p>No broadcasts are live right now.</p>
-{% endif %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Campus Broadcasts</title>
+  <link rel="stylesheet" href="{% static 'css/viewer/dashboard.css' %}">
+</head>
+<body>
+  <div class="dashboard-container">
+    <header>
+      <h1>Live Campus Broadcasts</h1>
+      <form id="logoutForm" method="POST" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="button" id="logoutBtn" class="logout-btn">Logout</button>
+      </form>
+    </header>
+
+    <div class="filters">
+      <input type="text" placeholder="🔍 Search broadcasts..." class="search-input" />
+      <select class="category-dropdown">
+        <option>All Categories</option>
+        <option>Cafeteria</option>
+        <option>Library</option>
+        <option>Lab</option>
+        <option>Auditorium</option>
+      </select>
+    </div>
+
+    {% if live_broadcasts %}
+    <div class="scrollable-cards">
+      <div id="broadcastGrid" class="broadcast-grid">
+        {% for broadcast in live_broadcasts %}
+          <div class="broadcast-card">
+            <div class="broadcast-thumbnail"></div>
+            <h3>{{ broadcast.title }}</h3>
+            <p>By {{ broadcast.broadcaster.username }}</p>
+            <span class="category-tag {{ broadcast.category|lower }}">{{ broadcast.category }}</span><br>
+            <a href="{{ broadcast.stream_url }}" target="_blank" class="join-btn">Join Stream</a>
+          </div>
+        {% endfor %}
+      </div></div>
+    {% else %}
+      <div class="no-broadcasts">
+        <img src="{% static 'images/empty-state.svg' %}" alt="No Broadcasts" />
+        <p>No live broadcasts at the moment.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- SweetAlert2 for logout confirmation -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    document.getElementById("logoutBtn").addEventListener("click", function () {
+      Swal.fire({
+        title: 'Are you sure?',
+        text: "You will be logged out of your session.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, logout'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          document.getElementById("logoutForm").submit();
+        }
+      });
+    });
+
+    // Search functionality
+    const searchInput = document.querySelector('.search-input');
+    const broadcastCards = document.querySelectorAll('.broadcast-card');
+
+    searchInput.addEventListener('input', function () {
+      const query = searchInput.value.toLowerCase();
+      
+      broadcastCards.forEach(card => {
+        const title = card.querySelector('h3').textContent.toLowerCase(); // Get the title of each broadcast card
+        if (title.includes(query)) {
+          card.style.display = ''; // Show the card if it matches the search
+        } else {
+          card.style.display = 'none'; // Hide the card if it doesn't match the search
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>

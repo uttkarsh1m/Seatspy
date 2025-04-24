@@ -1,34 +1,71 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Broadcaster Dashboard</title>
-  <style>
-    body { font-family: Arial; margin: 2rem; }
-    .card { border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem; border-radius: 8px; }
-    .card-title { font-weight: bold; font-size: 1.2rem; }
-    input, button { padding: 0.5rem; margin: 0.5rem 0; }
-  </style>
+  <link rel="stylesheet" href="{% static 'css/broadcaster/dashboard.css' %}">
+  
 </head>
 <body>
-  <h1>Welcome, {{ request.user.username }}</h1>
-  <h2>Start a New Broadcast</h2>
-  <form method="POST">
-    {% csrf_token %}
-    <input type="text" name="title" placeholder="Enter broadcast title" required />
-    <button type="submit">Go Live</button>
-  </form>
+  <div class="dashboard-container">
+    <header class="dashboard-header">
+      <h1>Welcome, {{ request.user.username }}</h1>
+      <!-- <a href="{% url 'logout' %}" class="logout-btn" onclick="return confirmLogout()">Logout</a> -->
+       <button id="logoutBtn" class="logout-btn">Logout</button>
 
-  <h2>Your Past Broadcasts</h2>
-  {% if broadcasts %}
-    {% for broadcast in broadcasts %}
-      <div class="card">
-        <div class="card-title">{{ broadcast.title }}</div>
-        <div>Created At: {{ broadcast.created_at }}</div>
-        <a href="{% url 'broadcaster_room' broadcast.id %}">Re-enter Room</a>
+
+
+    </header>
+    
+
+    <section class="new-broadcast">
+      <h2>Start a New Broadcast</h2>
+      <form method="POST">
+        {% csrf_token %}
+        <input type="text" name="title" placeholder="Enter broadcast title" required />
+        <button type="submit">Go Live</button>
+      </form>
+    </section>
+
+    <section class="past-broadcasts">
+      <h2>Your Past Broadcasts</h2>
+      <div class="broadcast-scroll-area">
+        {% if broadcasts %}
+          {% for broadcast in broadcasts %}
+            <div class="card">
+              <div class="card-title">{{ broadcast.title }}</div>
+              <div>Created At: {{ broadcast.created_at }}</div>
+              <a href="{% url 'broadcaster_room' broadcast.id %}">Re-enter Room</a>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p>No broadcasts yet.</p>
+        {% endif %}
       </div>
-    {% endfor %}
-  {% else %}
-    <p>No broadcasts yet.</p>
-  {% endif %}
+    </section>
+    
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    document.getElementById("logoutBtn").addEventListener("click", function () {
+      Swal.fire({
+        title: 'Are you sure?',
+        text: "You will be logged out of your session.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, logout'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = "{% url 'logout' %}";
+        }
+      });
+    });
+  </script>
+  
+
 </body>
 </html>
