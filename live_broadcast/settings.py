@@ -57,14 +57,16 @@ TEMPLATES = [
     },
 ]
 
-# CHANNEL_LAYERS = {
-#     'default': {
-#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
-#         'CONFIG': {
-#             "hosts": [('redis', 6379)], 
-#         },
-#     },
-# }
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        # 'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        # 'CONFIG': {
+        #     "hosts": [('redis', 6379)], 
+        # },
+    },
+}
+
 WSGI_APPLICATION = 'live_broadcast.wsgi.application'
 ASGI_APPLICATION = 'live_broadcast.asgi.application'
 

@@ -25,8 +25,19 @@
   </style>
 </head>
 <body>
-  <h2>Broadcasting: {{ title }} - Room: <span id="room-id">{{ roomId }}</span></h2>
+  <h2>
+    Broadcasting: {{ title }}
+    – Room:<span id="room-id">{{ roomId }}</span>
+  </h2>
+
   <video id="video" autoplay playsinline muted></video><br>
+
+  <!-- Hidden form to notify Django that we want to stop -->
+  <form id="stop-form" method="post" action="{% url 'broadcaster_room' roomId=roomId %}" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="stop" value="true">
+  </form>
+
   <button id="stopBtn">Stop Broadcast</button>
 
   <script>
@@ -43,8 +54,9 @@
     let stream;
     let interval;
 
+    // Start camera and send frames over WebSocket
     navigator.mediaDevices.getUserMedia({ video: true })
-      .then((mediaStream) => {
+      .then(mediaStream => {
         stream = mediaStream;
         video.srcObject = stream;
 
@@ -58,36 +70,32 @@
           }
         }, 200); // ~5 FPS
       })
-      .catch((error) => {
+      .catch(error => {
         alert("Camera access denied or failed.");
         redirectToDashboard();
       });
+
+    // When WS closes or errors, go back
+    socket.onclose = redirectToDashboard;
+    socket.onerror = redirectToDashboard;
 
     stopBtn.onclick = () => {
       stopBroadcast();
     };
 
-    socket.onclose = () => {
-      redirectToDashboard();
-    };
-
-    socket.onerror = () => {
-      redirectToDashboard();
-    };
-
     function stopBroadcast() {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-      if (interval) {
-        clearInterval(interval);
-      }
+      // 1) Send POST to Django to set is_live=False
+      document.getElementById('stop-form').submit();
+
+      // 2) Tear down media and WS immediately
+      if (stream) stream.getTracks().forEach(t => t.stop());
+      if (interval) clearInterval(interval);
       socket.close();
-      redirectToDashboard();
+      // note: form submission will redirect for us
     }
 
     function redirectToDashboard() {
-      window.location.href = "/broadcaster/dashboard/";
+      window.location.href = "{% url 'broadcaster_dashboard' %}";
     }
   </script>
 </body>

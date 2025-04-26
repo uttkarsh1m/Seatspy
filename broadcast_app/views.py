@@ -1,4 +1,4 @@
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
@@ -61,7 +61,7 @@ def custom_logout_view(request):
 
 @role_required('viewer')
 def viewer_dashboard_view(request):
-    live_broadcasts = Broadcast.objects.all().select_related('broadcaster__profile')
+    live_broadcasts = Broadcast.objects.filter(is_live=True).select_related('broadcaster__profile')
     return render(request, 'viewer/dashboard.html', {
         'live_broadcasts': live_broadcasts
     })
@@ -73,9 +73,12 @@ def broadcaster_dashboard_view(request):
         if title:
             broadcast = Broadcast.objects.create(
                 broadcaster=request.user,
-                title=title
+                title=title,
             )
-            return redirect('broadcaster_room', room_id=broadcast.id)
+            broadcast.full_clean()  
+            broadcast.save()
+            
+            return redirect('broadcaster_room', roomId=broadcast.id)
 
     # GET request: show existing broadcasts
     broadcasts = Broadcast.objects.filter(broadcaster=request.user).order_by('-created_at')
@@ -91,11 +94,21 @@ def viewer_room_view(request, roomId):
         'title': broadcast.title,
         'broadcaster': broadcast.broadcaster.username
     })
-    
+
+@csrf_protect
 @role_required('broadcaster')
 def broadcaster_room_view(request, roomId):
     broadcast = get_object_or_404(Broadcast, id=roomId, broadcaster=request.user)
+
+    if request.method == 'POST':
+        stop_flag = request.POST.get('stop')
+        if stop_flag == "true":
+            broadcast.is_live = False
+            broadcast.save()
+        return redirect('broadcaster_room', roomId=broadcast.id)
+
     return render(request, 'broadcaster/broadcast.html', {
         'roomId': broadcast.id,
-        'title': broadcast.title
+        'title': broadcast.title,
+        'is_live': broadcast.is_live,
     })
