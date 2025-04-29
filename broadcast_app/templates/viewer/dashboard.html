@@ -37,7 +37,7 @@
             <h3>{{ broadcast.title }}</h3>
             <p>By {{ broadcast.broadcaster.username }}</p>
             <span class="category-tag {{ broadcast.category|lower }}">{{ broadcast.category }}</span><br>
-            <a href="{{ broadcast.stream_url }}" target="_blank" class="join-btn">Join Stream</a>
+            <a href="{% url 'viewer_room' roomId=broadcast.id %}" target="_blank" class="join-btn"> Join Stream </a>
           </div>
         {% endfor %}
       </div></div>

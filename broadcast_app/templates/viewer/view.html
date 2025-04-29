@@ -24,12 +24,29 @@
       font-size: 1.2em;
       margin-top: 10px;
     }
+    .stats-overlay {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 15px;
+      border-radius: 8px;
+      z-index: 1000;
+    }
   </style>
 </head>
 <body>
   <h2>Now Streaming: {{ title }}</h2>
   <h3>By: {{ broadcaster }}</h3>
   <h4>Room ID: {{ roomId }}</h4>
+  
+  <div class="stats-overlay">
+    <h4>Live Statistics</h4>
+    <p>🪑 Empty Seats: <span id="stat-empty">0</span></p>
+    <p>👥 People: <span id="stat-people">0</span></p>
+  </div>
+
   <img id="stream" alt="Live stream will appear here..." />
   <div id="offline-msg" style="display: none;">🔴 Stream is currently offline.</div>
 
@@ -40,24 +57,28 @@
     const socket = new WebSocket(wsUrl);
     const img = document.getElementById("stream");
     const offlineMsg = document.getElementById("offline-msg");
+    const statEmpty = document.getElementById("stat-empty");
+    const statPeople = document.getElementById("stat-people");
 
     let timeout = setTimeout(() => {
       offlineMsg.style.display = "block";
-    }, 5000); // 5 seconds wait to determine offline
+    }, 5000);
 
-    socket.onmessage = function (event) {
+    socket.onmessage = function(event) {
       const data = JSON.parse(event.data);
-      if (data.frame) {
+      if(data.frame) {
         img.src = data.frame;
-        offlineMsg.style.display = "none";  // Hide offline if receiving frames
-        clearTimeout(timeout); // Clear the offline timeout
+        statEmpty.textContent = data.empty;
+        statPeople.textContent = data.persons;
+        offlineMsg.style.display = "none";
+        clearTimeout(timeout);
         timeout = setTimeout(() => {
           offlineMsg.style.display = "block";
-        }, 5000); // Restart timeout if no frame for 5s
+        }, 5000);
       }
     };
 
-    socket.onerror = function (error) {
+    socket.onerror = function(error) {
       console.error("WebSocket error:", error);
     };
   </script>
