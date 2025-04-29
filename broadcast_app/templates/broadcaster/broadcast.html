@@ -22,6 +22,16 @@
     button:hover {
       background-color: #c0392b;
     }
+    .stats-overlay {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 15px;
+      border-radius: 8px;
+      z-index: 1000;
+    }
   </style>
 </head>
 <body>
@@ -30,9 +40,14 @@
     – Room:<span id="room-id">{{ roomId }}</span>
   </h2>
 
+  <div class="stats-overlay">
+    <h4>Broadcasting Stats</h4>
+    <p>📶 Status: <span id="status">Live</span></p>
+    <p>⚡ FPS: <span id="fps-counter">5</span></p>
+  </div>
+
   <video id="video" autoplay playsinline muted></video><br>
 
-  <!-- Hidden form to notify Django that we want to stop -->
   <form id="stop-form" method="post" action="{% url 'broadcaster_room' roomId=roomId %}" style="display:none;">
     {% csrf_token %}
     <input type="hidden" name="stop" value="true">
@@ -50,32 +65,52 @@
     const stopBtn = document.getElementById("stopBtn");
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
+    const fpsCounter = document.getElementById("fps-counter");
 
     let stream;
     let interval;
+    let isProcessing = false;
+    let frameCount = 0;
+    let lastFpsUpdate = Date.now();
 
-    // Start camera and send frames over WebSocket
+    // Camera setup with rate limiting
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(mediaStream => {
         stream = mediaStream;
         video.srcObject = stream;
 
         interval = setInterval(() => {
-          if (video.videoWidth && video.videoHeight) {
+          if (!isProcessing && video.videoWidth && video.videoHeight) {
+            isProcessing = true;
+            
+            // Calculate FPS
+            frameCount++;
+            const now = Date.now();
+            if(now - lastFpsUpdate >= 1000) {
+              fpsCounter.textContent = frameCount;
+              frameCount = 0;
+              lastFpsUpdate = now;
+            }
+
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             const frame = canvas.toDataURL("image/jpeg");
             socket.send(JSON.stringify({ frame }));
+
+            // Rate limiting (5 FPS)
+            setTimeout(() => {
+              isProcessing = false;
+            }, 200);
           }
-        }, 200); // ~5 FPS
+        }, 50);  // Check every 50ms
       })
       .catch(error => {
         alert("Camera access denied or failed.");
         redirectToDashboard();
       });
 
-    // When WS closes or errors, go back
+    // WebSocket handlers
     socket.onclose = redirectToDashboard;
     socket.onerror = redirectToDashboard;
 
@@ -84,14 +119,10 @@
     };
 
     function stopBroadcast() {
-      // 1) Send POST to Django to set is_live=False
       document.getElementById('stop-form').submit();
-
-      // 2) Tear down media and WS immediately
       if (stream) stream.getTracks().forEach(t => t.stop());
       if (interval) clearInterval(interval);
       socket.close();
-      // note: form submission will redirect for us
     }
 
     function redirectToDashboard() {
