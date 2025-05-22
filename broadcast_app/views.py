@@ -99,16 +99,10 @@ def viewer_room_view(request, roomId):
 @role_required('broadcaster')
 def broadcaster_room_view(request, roomId):
     broadcast = get_object_or_404(Broadcast, id=roomId, broadcaster=request.user)
-
-    if request.method == 'POST':
-        stop_flag = request.POST.get('stop')
-        if stop_flag == "true":
-            broadcast.is_live = False
-            broadcast.save()
-        return redirect('broadcaster_room', roomId=broadcast.id)
-
+    if not broadcast.is_live:
+        broadcast.is_live = True
+        broadcast.save(update_fields=['is_live'])
     return render(request, 'broadcaster/broadcast.html', {
         'roomId': broadcast.id,
         'title': broadcast.title,
-        'is_live': broadcast.is_live,
     })

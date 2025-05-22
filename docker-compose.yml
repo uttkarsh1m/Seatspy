@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   redis:
     image: redis:alpine
@@ -8,18 +10,21 @@ services:
 
   web:
     build: .
-    command: daphne -b 0.0.0.0 -p 8000 live_broadcast.asgi:application
+    command: >
+      /bin/sh -c
+      "python manage.py migrate --noinput &&
+       python manage.py collectstatic --noinput &&
+       daphne -b 0.0.0.0 -p 8000 live_broadcast.asgi:application"
     volumes:
       - .:/app
       - ./media:/app/media
-      - ./staticfiles:/app/staticfiles 
+      - ./staticfiles:/app/staticfiles
     ports:
       - "8000:8000"
     depends_on:
       - redis
-    environment:
-      - DJANGO_SETTINGS_MODULE=live_broadcast.settings
-      - DJANGO_DEBUG=True
+    env_file:
+      - .env
 
 volumes:
   redis_data:

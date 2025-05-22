@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<<<<<<< HEAD
   <meta charset="UTF-8">
   <title>Broadcast Stream - {{ title }}</title>
   <link rel="stylesheet" href="{% static 'css/broadcaster/broadcast.css' %}">
@@ -31,30 +32,92 @@
       <p>⚡ FPS: <strong id="fps-counter">0</strong></p>
     </div>
   </main>
+=======
+  <title>Broadcast Stream – {{ title }}</title>
+  <style>
+    video {
+      width: 640px;
+      height: 480px;
+      border: 2px solid #444;
+      border-radius: 8px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 15px;
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #c0392b;
+    }
+    .stats-overlay {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 15px;
+      border-radius: 8px;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <h2>
+    Broadcasting: {{ title }} – Room: <span id="room-id">{{ roomId }}</span>
+  </h2>
+
+  <div class="stats-overlay">
+    <h4>Broadcasting Stats</h4>
+    <p>📶 Status: <span id="status">{{ is_live|yesno:"Live,Stopped" }}</span></p>
+    <p>⚡ FPS: <span id="fps-counter">0</span></p>
+  </div>
+
+  <video id="video" autoplay playsinline muted></video><br>
+  <button id="stopBtn">Stop Broadcast</button>
+>>>>>>> 142683ed355664152ef2ce21219fc0dbe77271d6
 
   <script>
     const roomId = "{{ roomId }}";
-    const wsProtocol = location.protocol === "https:" ? "wss" : "ws";
-    const wsUrl = `${wsProtocol}://${window.location.host}/ws/broadcast/${roomId}/`;
-    const socket = new WebSocket(wsUrl);
+    const role   = "broadcaster";
+    const socket = new WebSocket(
+      `${location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`
+      + `/ws/broadcast/${roomId}/?role=${role}`
+    );
 
-    const video = document.getElementById("video");
-    const stopBtn = document.getElementById("stopBtn");
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
+    const video      = document.getElementById("video");
+    const stopBtn    = document.getElementById("stopBtn");
     const fpsCounter = document.getElementById("fps-counter");
+    const canvas     = document.createElement("canvas");
+    const ctx        = canvas.getContext("2d");
 
     let stream;
-    let interval;
-    let isProcessing = false;
-    let frameCount = 0;
-    let lastFpsUpdate = Date.now();
+    let frameCount   = 0;
+    let lastFpsTime  = Date.now();
+
+    function cleanUpAndRedirect() {
+      // stop camera
+      if (stream) {
+        stream.getTracks().forEach(t => t.stop());
+      }
+      // close socket
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.close();
+      }
+      // go back to dashboard
+      window.location.href = '/broadcaster/dashboard';
+    }
 
     navigator.mediaDevices.getUserMedia({ video: true })
-      .then(mediaStream => {
-        stream = mediaStream;
-        video.srcObject = stream;
+      .then(ms => {
+        stream        = ms;
+        video.srcObject = ms;
 
+<<<<<<< HEAD
         interval = setInterval(() => {
           if (!isProcessing && video.videoWidth && video.videoHeight) {
             isProcessing = true;
@@ -86,21 +149,43 @@
 
     socket.onclose = redirectToDashboard;
     socket.onerror = redirectToDashboard;
+=======
+        setInterval(() => {
+          const w = 320;
+          const h = video.videoHeight / video.videoWidth * w;
+          canvas.width  = w;
+          canvas.height = h;
+          ctx.drawImage(video, 0, 0, w, h);
 
-    stopBtn.onclick = () => {
-      stopBroadcast();
-    };
+          // update FPS
+          frameCount++;
+          const now = Date.now();
+          if (now - lastFpsTime >= 1000) {
+            fpsCounter.textContent = frameCount;
+            frameCount  = 0;
+            lastFpsTime = now;
+          }
 
-    function stopBroadcast() {
-      document.getElementById('stop-form').submit();
-      if (stream) stream.getTracks().forEach(t => t.stop());
-      if (interval) clearInterval(interval);
-      socket.close();
-    }
+          canvas.toBlob(blob => {
+            if (socket.readyState === WebSocket.OPEN) {
+              const header    = JSON.stringify({ ts_send: Date.now() });
+              const headerBuf = new TextEncoder().encode(header);
+              const payload   = new Blob([headerBuf, new Uint8Array([0]), blob]);
+              socket.send(payload);
+            }
+          }, "image/jpeg", 0.6);
+        }, 200);
+      })
+      .catch(cleanUpAndRedirect);
 
-    function redirectToDashboard() {
-      window.location.href = "{% url 'broadcaster_dashboard' %}";
-    }
+    stopBtn.addEventListener('click', cleanUpAndRedirect);
+>>>>>>> 142683ed355664152ef2ce21219fc0dbe77271d6
+
+    window.addEventListener('beforeunload', () => {
+      cleanUpAndRedirect();
+    });
+    socket.addEventListener('error', cleanUpAndRedirect);
+    socket.addEventListener('close', cleanUpAndRedirect);
   </script>
 </body>
 </html>

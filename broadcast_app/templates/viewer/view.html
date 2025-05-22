@@ -1,38 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>{{ title }} - Live Stream</title>
+  <title>Live Viewer – {{ title }}</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f9f9f9;
-      text-align: center;
-      padding: 30px;
-    }
-    img {
-      width: 640px;
-      height: 480px;
-      border: 2px solid #333;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    }
-    h2, h3, h4 {
-      margin: 10px 0;
-    }
-    #offline-msg {
-      color: red;
-      font-size: 1.2em;
-      margin-top: 10px;
-    }
-    .stats-overlay {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      background: rgba(0,0,0,0.7);
+    body { font-family: Arial, sans-serif; background: #f9f9f9; text-align: center; padding: 30px; }
+    img { width: 640px; height: 480px; border: 2px solid #333; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.2); }
+    .stats-overlay { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.7); color: white; padding: 15px; border-radius: 8px; z-index: 1000; }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 15px;
+      background-color: #3498db;
       color: white;
-      padding: 15px;
-      border-radius: 8px;
-      z-index: 1000;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #2980b9;
     }
   </style>
 </head>
@@ -48,39 +33,62 @@
   </div>
 
   <img id="stream" alt="Live stream will appear here..." />
-  <div id="offline-msg" style="display: none;">🔴 Stream is currently offline.</div>
+  <div id="offline-msg" style="display: none; color: red; font-size: 1.2em; margin-top: 10px;">
+    🔴 Stream is currently offline.
+  </div>
+
+  <!-- Leave Room Button -->
+  <button id="leaveBtn">Leave Room</button>
 
   <script>
     const roomId = "{{ roomId }}";
-    const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
-    const wsUrl = `${wsProtocol}://${window.location.host}/ws/broadcast/${roomId}/`;
-    const socket = new WebSocket(wsUrl);
-    const img = document.getElementById("stream");
-    const offlineMsg = document.getElementById("offline-msg");
-    const statEmpty = document.getElementById("stat-empty");
-    const statPeople = document.getElementById("stat-people");
+    const role   = "viewer";
+    const socket = new WebSocket(
+      `${location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`
+      + `/ws/broadcast/${roomId}/?role=${role}`
+    );
 
-    let timeout = setTimeout(() => {
+    const img        = document.getElementById("stream");
+    const emptyEl    = document.getElementById("stat-empty");
+    const peopleEl   = document.getElementById("stat-people");
+    const offlineMsg = document.getElementById("offline-msg");
+    const leaveBtn   = document.getElementById("leaveBtn");
+
+    let offlineTimeout = setTimeout(() => {
       offlineMsg.style.display = "block";
     }, 5000);
 
-    socket.onmessage = function(event) {
-      const data = JSON.parse(event.data);
-      if(data.frame) {
-        img.src = data.frame;
-        statEmpty.textContent = data.empty;
-        statPeople.textContent = data.persons;
-        offlineMsg.style.display = "none";
-        clearTimeout(timeout);
-        timeout = setTimeout(() => {
-          offlineMsg.style.display = "block";
-        }, 5000);
+    function leaveRoom() {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.close();
       }
+      window.location.href = '/viewer/dashboard';
+    }
+
+    socket.onmessage = e => {
+      const msg = JSON.parse(e.data);
+      const now = Date.now();
+      const { ts_send, ts_server, frame, empty, persons } = msg;
+
+      console.log(
+        `RTT total=${now - ts_send}ms; `,
+        `client→server=${ts_server - ts_send}ms; `,
+        `server→client=${now - ts_server}ms`
+      );
+
+      img.src         = frame;
+      emptyEl.textContent  = empty;
+      peopleEl.textContent = persons;
+      offlineMsg.style.display = "none";
+      clearTimeout(offlineTimeout);
+      offlineTimeout = setTimeout(() => offlineMsg.style.display = "block", 5000);
     };
 
-    socket.onerror = function(error) {
-      console.error("WebSocket error:", error);
-    };
+    socket.onerror = err => console.error("WebSocket error:", err);
+    socket.onclose = () => leaveRoom();
+
+    leaveBtn.addEventListener('click', leaveRoom);
+    window.addEventListener('beforeunload', leaveRoom);
   </script>
 </body>
 </html>
