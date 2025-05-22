@@ -1,59 +1,36 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Broadcast Stream - {{ title }}</title>
-  <style>
-    video {
-      width: 640px;
-      height: 480px;
-      border: 2px solid #444;
-      border-radius: 8px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin-top: 15px;
-      background-color: #e74c3c;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #c0392b;
-    }
-    .stats-overlay {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      background: rgba(0,0,0,0.7);
-      color: white;
-      padding: 15px;
-      border-radius: 8px;
-      z-index: 1000;
-    }
-  </style>
+  <link rel="stylesheet" href="{% static 'css/broadcaster/broadcast.css' %}">
+  
 </head>
 <body>
-  <h2>
-    Broadcasting: {{ title }}
-    – Room:<span id="room-id">{{ roomId }}</span>
-  </h2>
+  <header>
+    <h2>Broadcasting: {{ title }} – Room: <span id="room-id">{{ roomId }}</span></h2>
+  </header>
 
-  <div class="stats-overlay">
-    <h4>Broadcasting Stats</h4>
-    <p>📶 Status: <span id="status">Live</span></p>
-    <p>⚡ FPS: <span id="fps-counter">5</span></p>
-  </div>
+  <main>
+    <div class="video-container">
+      <video id="video" autoplay playsinline muted></video>
+    </div>
 
-  <video id="video" autoplay playsinline muted></video><br>
+    <div class="controls">
+      <form id="stop-form" method="post" action="{% url 'broadcaster_room' roomId=roomId %}" style="display:none;">
+        {% csrf_token %}
+        <input type="hidden" name="stop" value="true">
+      </form>
+      <button id="stopBtn">⏹ Stop Broadcast</button>
+    </div>
 
-  <form id="stop-form" method="post" action="{% url 'broadcaster_room' roomId=roomId %}" style="display:none;">
-    {% csrf_token %}
-    <input type="hidden" name="stop" value="true">
-  </form>
-
-  <button id="stopBtn">Stop Broadcast</button>
+    <div class="stats-panel">
+      <h4>📊 Broadcasting Stats</h4>
+      <p>📶 Status: <strong id="status">Live</strong></p>
+      <p>⚡ FPS: <strong id="fps-counter">0</strong></p>
+    </div>
+  </main>
 
   <script>
     const roomId = "{{ roomId }}";
@@ -73,7 +50,6 @@
     let frameCount = 0;
     let lastFpsUpdate = Date.now();
 
-    // Camera setup with rate limiting
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(mediaStream => {
         stream = mediaStream;
@@ -82,11 +58,10 @@
         interval = setInterval(() => {
           if (!isProcessing && video.videoWidth && video.videoHeight) {
             isProcessing = true;
-            
-            // Calculate FPS
+
             frameCount++;
             const now = Date.now();
-            if(now - lastFpsUpdate >= 1000) {
+            if (now - lastFpsUpdate >= 1000) {
               fpsCounter.textContent = frameCount;
               frameCount = 0;
               lastFpsUpdate = now;
@@ -98,19 +73,17 @@
             const frame = canvas.toDataURL("image/jpeg");
             socket.send(JSON.stringify({ frame }));
 
-            // Rate limiting (5 FPS)
             setTimeout(() => {
               isProcessing = false;
             }, 200);
           }
-        }, 50);  // Check every 50ms
+        }, 50);
       })
-      .catch(error => {
+      .catch(() => {
         alert("Camera access denied or failed.");
         redirectToDashboard();
       });
 
-    // WebSocket handlers
     socket.onclose = redirectToDashboard;
     socket.onerror = redirectToDashboard;
 
