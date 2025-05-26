@@ -1,61 +1,55 @@
+
+{% load static %}
+  <!-- <link rel="stylesheet" href="{% static 'css/viewer/view.css' %}"> -->
+
 <!DOCTYPE html>
 <html>
 <head>
   <title>Live Viewer – {{ title }}</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f9f9f9; text-align: center; padding: 30px; }
-    img { width: 640px; height: 480px; border: 2px solid #333; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.2); }
-    .stats-overlay { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.7); color: white; padding: 15px; border-radius: 8px; z-index: 1000; }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin-top: 15px;
-      background-color: #3498db;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #2980b9;
-    }
-  </style>
+  <link rel="stylesheet" href="{% static 'css/viewer/view.css' %}">
 </head>
 <body>
-  <h2>Now Streaming: {{ title }}</h2>
-  <h3>By: {{ broadcaster }}</h3>
-  <h4>Room ID: {{ roomId }}</h4>
-  
-  <div class="stats-overlay">
-    <h4>Live Statistics</h4>
-    <p>🪑 Empty Seats: <span id="stat-empty">0</span></p>
-    <p>👥 People: <span id="stat-people">0</span></p>
-  </div>
+  <header>
+    <h2>Now Streaming: {{ title }}</h2>
+    <h3>By: {{ broadcaster }}</h3>
+    <h4>Room ID: <span id="room-id">{{ roomId }}</span></h4>
+  </header>
 
-  <img id="stream" alt="Live stream will appear here..." />
-  <div id="offline-msg" style="display: none; color: red; font-size: 1.2em; margin-top: 10px;">
-    🔴 Stream is currently offline.
-  </div>
+  <main>
+    <div class="broadcast-box">
+      <div class="video-wrapper">
+        <img id="stream" alt="Live stream will appear here...">
+        <div id="stream-status" class="stream-status">⏳ Waiting for stream...</div>
+        <div class="stats-overlay">
+          <p>🪑 Empty Seats: <span id="stat-empty">0</span></p>
+          <p>👥 People: <span id="stat-people">0</span></p>
+        </div>
+      </div>
 
-  <!-- Leave Room Button -->
-  <button id="leaveBtn">Leave Room</button>
+      <div class="controls">
+        <button id="leaveBtn">Leave Room</button>
+      </div>
+    </div>
+  </main>
 
   <script>
     const roomId = "{{ roomId }}";
     const role   = "viewer";
     const socket = new WebSocket(
-      `${location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`
-      + `/ws/broadcast/${roomId}/?role=${role}`
+      `${location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws/broadcast/${roomId}/?role=${role}`
     );
 
-    const img        = document.getElementById("stream");
-    const emptyEl    = document.getElementById("stat-empty");
-    const peopleEl   = document.getElementById("stat-people");
-    const offlineMsg = document.getElementById("offline-msg");
-    const leaveBtn   = document.getElementById("leaveBtn");
+    const img           = document.getElementById("stream");
+    const streamStatus  = document.getElementById("stream-status");
+    const emptyEl       = document.getElementById("stat-empty");
+    const peopleEl      = document.getElementById("stat-people");
+    const leaveBtn      = document.getElementById("leaveBtn");
 
     let offlineTimeout = setTimeout(() => {
-      offlineMsg.style.display = "block";
+      streamStatus.textContent = "🔴 Stream is currently offline.";
+      streamStatus.style.display = "flex";
+      img.style.display = "none";
+      img.classList.remove("active");
     }, 5000);
 
     function leaveRoom() {
@@ -70,18 +64,22 @@
       const now = Date.now();
       const { ts_send, ts_server, frame, empty, persons } = msg;
 
-      console.log(
-        `RTT total=${now - ts_send}ms; `,
-        `client→server=${ts_server - ts_send}ms; `,
-        `server→client=${now - ts_server}ms`
-      );
+      if (frame) {
+        img.src = frame;
+        img.classList.add("active");
+        img.style.display = "block";
+        streamStatus.style.display = "none";
+        clearTimeout(offlineTimeout);
+        offlineTimeout = setTimeout(() => {
+          streamStatus.textContent = "🔴 Stream is currently offline.";
+          streamStatus.style.display = "flex";
+          img.style.display = "none";
+          img.classList.remove("active");
+        }, 5000);
+      }
 
-      img.src         = frame;
       emptyEl.textContent  = empty;
       peopleEl.textContent = persons;
-      offlineMsg.style.display = "none";
-      clearTimeout(offlineTimeout);
-      offlineTimeout = setTimeout(() => offlineMsg.style.display = "block", 5000);
     };
 
     socket.onerror = err => console.error("WebSocket error:", err);

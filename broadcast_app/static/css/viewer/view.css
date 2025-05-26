@@ -1,0 +1,149 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+header {
+  width: 100%;
+  max-width: 900px;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 20px 30px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  margin-bottom: 30px;
+}
+
+header h2 {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+#room-id {
+  color: #facc15;
+}
+
+main {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  justify-content: center;
+}
+
+.broadcast-box {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 300px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #5b6ee1, #7a55b5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+img#stream {
+  width: 100%;
+  height: auto;
+  display: none;
+  border-radius: 12px;
+}
+
+img#stream.active {
+  display: block;
+}
+
+.stream-status {
+  position: absolute;
+  z-index: 2;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #facc15;
+  text-align: center;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 10px 20px;
+  border-radius: 10px;
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.stats-overlay {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 10px 15px;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #fff;
+  backdrop-filter: blur(4px);
+}
+
+.controls {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+button {
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  box-shadow: 0 4px 12px rgba(159, 129, 129, 0.2);
+}
+
+button:hover {
+  background-color: #c0392b;
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  header h2 {
+    font-size: 18px;
+  }
+
+  .stats-overlay {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+
+  button {
+    width: 100%;
+  }
+
+  .controls {
+    padding: 0 10px;
+  }
+}

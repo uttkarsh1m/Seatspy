@@ -2,190 +2,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<<<<<<< HEAD
   <meta charset="UTF-8">
-  <title>Broadcast Stream - {{ title }}</title>
+  <title>Broadcast Stream – {{ title }}</title>
   <link rel="stylesheet" href="{% static 'css/broadcaster/broadcast.css' %}">
-  
 </head>
 <body>
+
   <header>
-    <h2>Broadcasting: {{ title }} – Room: <span id="room-id">{{ roomId }}</span></h2>
+    <h2>🎥 Broadcasting: {{ title }}</h2>
+    <p>Room ID: <span id="room-id">{{ roomId }}</span></p>
   </header>
 
   <main>
-    <div class="video-container">
-      <video id="video" autoplay playsinline muted></video>
-    </div>
+    <div class="broadcast-box">
+      <div class="video-wrapper">
+        <video id="video" autoplay playsinline muted></video>
+        <div class="fps-overlay">FPS: <span id="fps-counter">0</span></div>
+      </div>
 
-    <div class="controls">
-      <form id="stop-form" method="post" action="{% url 'broadcaster_room' roomId=roomId %}" style="display:none;">
-        {% csrf_token %}
-        <input type="hidden" name="stop" value="true">
-      </form>
-      <button id="stopBtn">⏹ Stop Broadcast</button>
-    </div>
-
-    <div class="stats-panel">
-      <h4>📊 Broadcasting Stats</h4>
-      <p>📶 Status: <strong id="status">Live</strong></p>
-      <p>⚡ FPS: <strong id="fps-counter">0</strong></p>
+      <div class="controls">
+        <form id="stop-form" method="post" action="{% url 'broadcaster_room' roomId=roomId %}" style="display:none;">
+          {% csrf_token %}
+          <input type="hidden" name="stop" value="true">
+        </form>
+        <button id="stopBtn">⏹ Stop Broadcast</button>
+      </div>
     </div>
   </main>
-=======
-  <title>Broadcast Stream – {{ title }}</title>
-  <style>
-    video {
-      width: 640px;
-      height: 480px;
-      border: 2px solid #444;
-      border-radius: 8px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin-top: 15px;
-      background-color: #e74c3c;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #c0392b;
-    }
-    .stats-overlay {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      background: rgba(0,0,0,0.7);
-      color: white;
-      padding: 15px;
-      border-radius: 8px;
-      z-index: 1000;
-    }
-  </style>
-</head>
-<body>
-  <h2>
-    Broadcasting: {{ title }} – Room: <span id="room-id">{{ roomId }}</span>
-  </h2>
-
-  <div class="stats-overlay">
-    <h4>Broadcasting Stats</h4>
-    <p>📶 Status: <span id="status">{{ is_live|yesno:"Live,Stopped" }}</span></p>
-    <p>⚡ FPS: <span id="fps-counter">0</span></p>
-  </div>
-
-  <video id="video" autoplay playsinline muted></video><br>
-  <button id="stopBtn">Stop Broadcast</button>
->>>>>>> 142683ed355664152ef2ce21219fc0dbe77271d6
 
   <script>
     const roomId = "{{ roomId }}";
-    const role   = "broadcaster";
+    const role = "broadcaster";
+    const video = document.getElementById("video");
+    const stopBtn = document.getElementById("stopBtn");
+    const fpsCounter = document.getElementById("fps-counter");
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    let stream = null;
+    let frameCount = 0;
+    let lastFpsTime = Date.now();
+
     const socket = new WebSocket(
-      `${location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`
-      + `/ws/broadcast/${roomId}/?role=${role}`
+      `${location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws/broadcast/${roomId}/?role=${role}`
     );
 
-    const video      = document.getElementById("video");
-    const stopBtn    = document.getElementById("stopBtn");
-    const fpsCounter = document.getElementById("fps-counter");
-    const canvas     = document.createElement("canvas");
-    const ctx        = canvas.getContext("2d");
-
-    let stream;
-    let frameCount   = 0;
-    let lastFpsTime  = Date.now();
-
-    function cleanUpAndRedirect() {
-      // stop camera
-      if (stream) {
-        stream.getTracks().forEach(t => t.stop());
+    function updateFPS() {
+      const now = Date.now();
+      if (now - lastFpsTime >= 1000) {
+        fpsCounter.textContent = frameCount;
+        frameCount = 0;
+        lastFpsTime = now;
       }
-      // close socket
-      if (socket.readyState === WebSocket.OPEN) {
-        socket.close();
-      }
-      // go back to dashboard
-      window.location.href = '/broadcaster/dashboard';
     }
 
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(ms => {
-        stream        = ms;
-        video.srcObject = ms;
+    function sendFrame() {
+      const w = 320;
+      const h = video.videoHeight / video.videoWidth * w;
+      canvas.width = w;
+      canvas.height = h;
+      ctx.drawImage(video, 0, 0, w, h);
 
-<<<<<<< HEAD
-        interval = setInterval(() => {
-          if (!isProcessing && video.videoWidth && video.videoHeight) {
-            isProcessing = true;
+      frameCount++;
+      updateFPS();
 
-            frameCount++;
-            const now = Date.now();
-            if (now - lastFpsUpdate >= 1000) {
-              fpsCounter.textContent = frameCount;
-              frameCount = 0;
-              lastFpsUpdate = now;
-            }
+      canvas.toBlob(blob => {
+        if (socket.readyState === WebSocket.OPEN) {
+          const header = JSON.stringify({ ts_send: Date.now() });
+          const headerBuf = new TextEncoder().encode(header);
+          const payload = new Blob([headerBuf, new Uint8Array([0]), blob]);
+          socket.send(payload);
+        }
+      }, "image/jpeg", 0.6);
+    }
 
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const frame = canvas.toDataURL("image/jpeg");
-            socket.send(JSON.stringify({ frame }));
+    function cleanUpAndRedirect() {
+      if (stream) stream.getTracks().forEach(t => t.stop());
+      if (socket.readyState === WebSocket.OPEN) socket.close();
+      document.getElementById("stop-form").submit();
+    }
 
-            setTimeout(() => {
-              isProcessing = false;
-            }, 200);
-          }
-        }, 50);
-      })
-      .catch(() => {
-        alert("Camera access denied or failed.");
-        redirectToDashboard();
-      });
+    async function startStream() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+        setInterval(sendFrame, 200);
+      } catch (error) {
+        alert("Camera access denied or not available.");
+        cleanUpAndRedirect();
+      }
+    }
 
-    socket.onclose = redirectToDashboard;
-    socket.onerror = redirectToDashboard;
-=======
-        setInterval(() => {
-          const w = 320;
-          const h = video.videoHeight / video.videoWidth * w;
-          canvas.width  = w;
-          canvas.height = h;
-          ctx.drawImage(video, 0, 0, w, h);
+    stopBtn.addEventListener("click", cleanUpAndRedirect);
+    window.addEventListener("beforeunload", cleanUpAndRedirect);
+    socket.addEventListener("error", cleanUpAndRedirect);
+    socket.addEventListener("close", cleanUpAndRedirect);
 
-          // update FPS
-          frameCount++;
-          const now = Date.now();
-          if (now - lastFpsTime >= 1000) {
-            fpsCounter.textContent = frameCount;
-            frameCount  = 0;
-            lastFpsTime = now;
-          }
-
-          canvas.toBlob(blob => {
-            if (socket.readyState === WebSocket.OPEN) {
-              const header    = JSON.stringify({ ts_send: Date.now() });
-              const headerBuf = new TextEncoder().encode(header);
-              const payload   = new Blob([headerBuf, new Uint8Array([0]), blob]);
-              socket.send(payload);
-            }
-          }, "image/jpeg", 0.6);
-        }, 200);
-      })
-      .catch(cleanUpAndRedirect);
-
-    stopBtn.addEventListener('click', cleanUpAndRedirect);
->>>>>>> 142683ed355664152ef2ce21219fc0dbe77271d6
-
-    window.addEventListener('beforeunload', () => {
-      cleanUpAndRedirect();
-    });
-    socket.addEventListener('error', cleanUpAndRedirect);
-    socket.addEventListener('close', cleanUpAndRedirect);
+    startStream();
   </script>
+
 </body>
 </html>
